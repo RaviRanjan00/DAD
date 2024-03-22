@@ -1,0 +1,146 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "totalCount": {
+      "type": "integer"
+    },
+    "_links": {
+      "type": "object",
+      "properties": {
+        "self": {
+          "type": "object",
+          "properties": {
+            "href": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "href"
+          ]
+        }
+      },
+      "required": [
+        "self"
+      ]
+    },
+    "_embedded": {
+      "type": "object",
+      "properties": {
+        "articles": {
+          "type": "array",
+          "items": [
+            {
+              "type": "object",
+              "properties": {
+                "articleNumber": {
+                  "type": "string"
+                },
+                "dirty": {
+                  "type": "boolean"
+                },
+                "highPriority": {
+                  "type": "boolean"
+                },
+                "public": {
+                  "type": "boolean"
+                },
+                "launchUtc": {
+                  "type": "string"
+                },
+                "expiryUtc": {
+                  "type": "string"
+                },
+                "attempt": {
+                  "type": "integer"
+                },
+                "manualMode": {
+                  "type": "boolean"
+                },
+                "_links": {
+                  "type": "object",
+                  "properties": {
+                    "self": {
+                      "type": "object",
+                      "properties": {
+                        "href": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "href"
+                      ]
+                    },
+                    "edit": {
+                      "type": "object",
+                      "properties": {
+                        "href": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "href"
+                      ]
+                    },
+                    "delete": {
+                      "type": "object",
+                      "properties": {
+                        "href": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "href"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "self",
+                    "edit",
+                    "delete"
+                  ]
+                },
+                "_embedded": {
+                  "type": "object",
+                  "properties": {
+                    "deliveries": {
+                      "type": "array",
+                      "items": {}
+                    },
+                    "metadata": {
+                      "type": "array",
+                      "items": {}
+                    }
+                  },
+                  "required": [
+                    "deliveries",
+                    "metadata"
+                  ]
+                }
+              },
+              "required": [
+                "articleNumber",
+                "dirty",
+                "highPriority",
+                "public",
+                "launchUtc",
+                "manualMode",
+                "_links",
+                "_embedded"
+              ],
+              "additionalProperties": true
+            }
+          ]
+        }
+      },
+      "required": [
+        "articles"
+      ]
+    }
+  },
+  "required": [
+    "totalCount",
+    "_links",
+    "_embedded"
+  ]
+}

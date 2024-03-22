@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "location": {
+      "type": "string",
+      "enum": ["cookie"]
+    },
+    "name": {
+      "type": "string",
+      "enum": ["__cld_token__"]
+    },
+    "value": {
+      "type": "string",
+      "pattern": "^st=\\d+~exp=\\d+~acl=\\/\\*~id=[\\w\\d@._-]+~hmac=[a-f\\d]{64}$"
+    },
+    "startUtc": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d*Z$"
+    },
+    "endUtc": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d*Z$"
+    }
+  },
+  "required": ["location", "name", "value", "startUtc", "endUtc"]
+}

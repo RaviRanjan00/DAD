@@ -1,0 +1,439 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "articleNumber": {
+      "type": "string"
+    },
+    "manualMode": {
+      "type": "boolean"
+    },
+    "dirty": {
+      "type": "boolean"
+    },
+    "manualModeState": {
+      "type": "null"
+    },
+    "manualModeUser": {
+      "type": "string"
+    },
+    "deliveries": {
+      "type": "array",
+      "items": [
+        {
+          "type": "object",
+          "properties": {
+            "defaultAlias": {
+              "type": "string"
+            },
+            "deliveryTaskId": {
+              "type": "integer"
+            },
+            "marvinAssetId": {
+              "type": "string"
+            },
+            "sortOrder": {
+              "type": "integer"
+            },
+            "outputSetId": {
+              "type": "integer"
+            },
+            "tags": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "scopeId": {
+              "type": "integer"
+            },
+            "srcTemplate": {
+              "type": "string"
+            },
+            "sourceExtension": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string"
+            },
+            "available": {
+              "type": "boolean"
+            },
+            "public": {
+              "type": "boolean"
+            },
+            "successful": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "defaultAlias",
+            "deliveryTaskId",
+            "marvinAssetId",
+            "sortOrder",
+            "outputSetId",
+            "tags",
+            "scopeId",
+            "srcTemplate",
+            "sourceExtension",
+            "status",
+            "available",
+            "public",
+            "successful"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "defaultAlias": {
+              "type": "string"
+            },
+            "deliveryTaskId": {
+              "type": "integer"
+            },
+            "marvinAssetId": {
+              "type": "string"
+            },
+            "sortOrder": {
+              "type": "integer"
+            },
+            "outputSetId": {
+              "type": "integer"
+            },
+            "tags": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "scopeId": {
+              "type": "integer"
+            },
+            "srcTemplate": {
+              "type": "string"
+            },
+            "sourceExtension": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string"
+            },
+            "available": {
+              "type": "boolean"
+            },
+            "public": {
+              "type": "boolean"
+            },
+            "successful": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "defaultAlias",
+            "deliveryTaskId",
+            "marvinAssetId",
+            "sortOrder",
+            "outputSetId",
+            "tags",
+            "scopeId",
+            "srcTemplate",
+            "sourceExtension",
+            "status",
+            "available",
+            "public",
+            "successful"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "defaultAlias": {
+              "type": "string"
+            },
+            "deliveryTaskId": {
+              "type": "integer"
+            },
+            "marvinAssetId": {
+              "type": "string"
+            },
+            "sortOrder": {
+              "type": "integer"
+            },
+            "outputSetId": {
+              "type": "integer"
+            },
+            "tags": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "scopeId": {
+              "type": "integer"
+            },
+            "srcTemplate": {
+              "type": "string"
+            },
+            "sourceExtension": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string"
+            },
+            "available": {
+              "type": "boolean"
+            },
+            "public": {
+              "type": "boolean"
+            },
+            "successful": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "defaultAlias",
+            "deliveryTaskId",
+            "marvinAssetId",
+            "sortOrder",
+            "outputSetId",
+            "tags",
+            "scopeId",
+            "srcTemplate",
+            "sourceExtension",
+            "status",
+            "available",
+            "public",
+            "successful"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "defaultAlias": {
+              "type": "string"
+            },
+            "deliveryTaskId": {
+              "type": "integer"
+            },
+            "marvinAssetId": {
+              "type": "string"
+            },
+            "sortOrder": {
+              "type": "integer"
+            },
+            "outputSetId": {
+              "type": "integer"
+            },
+            "tags": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "scopeId": {
+              "type": "integer"
+            },
+            "srcTemplate": {
+              "type": "string"
+            },
+            "sourceExtension": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string"
+            },
+            "available": {
+              "type": "boolean"
+            },
+            "public": {
+              "type": "boolean"
+            },
+            "successful": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "defaultAlias",
+            "deliveryTaskId",
+            "marvinAssetId",
+            "sortOrder",
+            "outputSetId",
+            "tags",
+            "scopeId",
+            "srcTemplate",
+            "sourceExtension",
+            "status",
+            "available",
+            "public",
+            "successful"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "defaultAlias": {
+              "type": "string"
+            },
+            "deliveryTaskId": {
+              "type": "integer"
+            },
+            "marvinAssetId": {
+              "type": "string"
+            },
+            "sortOrder": {
+              "type": "integer"
+            },
+            "outputSetId": {
+              "type": "integer"
+            },
+            "tags": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "scopeId": {
+              "type": "integer"
+            },
+            "srcTemplate": {
+              "type": "string"
+            },
+            "sourceExtension": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string"
+            },
+            "available": {
+              "type": "boolean"
+            },
+            "public": {
+              "type": "boolean"
+            },
+            "successful": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "defaultAlias",
+            "deliveryTaskId",
+            "marvinAssetId",
+            "sortOrder",
+            "outputSetId",
+            "tags",
+            "scopeId",
+            "srcTemplate",
+            "sourceExtension",
+            "status",
+            "available",
+            "public",
+            "successful"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "defaultAlias": {
+              "type": "string"
+            },
+            "deliveryTaskId": {
+              "type": "integer"
+            },
+            "marvinAssetId": {
+              "type": "string"
+            },
+            "sortOrder": {
+              "type": "integer"
+            },
+            "outputSetId": {
+              "type": "integer"
+            },
+            "tags": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "scopeId": {
+              "type": "integer"
+            },
+            "srcTemplate": {
+              "type": "string"
+            },
+            "sourceExtension": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string"
+            },
+            "available": {
+              "type": "boolean"
+            },
+            "public": {
+              "type": "boolean"
+            },
+            "successful": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "defaultAlias",
+            "deliveryTaskId",
+            "marvinAssetId",
+            "sortOrder",
+            "outputSetId",
+            "tags",
+            "scopeId",
+            "srcTemplate",
+            "sourceExtension",
+            "status",
+            "available",
+            "public",
+            "successful"
+          ]
+        }
+      ]
+    }
+  },
+  "required": [
+    "articleNumber",
+    "manualMode",
+    "dirty",
+    "manualModeState",
+    "manualModeUser",
+    "deliveries"
+  ]
+}

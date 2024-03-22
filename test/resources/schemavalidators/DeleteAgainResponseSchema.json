@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "_links": {
+      "type": "object",
+      "properties": {
+        "self": {
+          "type": "object",
+          "properties": {
+            "href": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "href"
+          ]
+        }
+      },
+      "required": [
+        "self"
+      ]
+    },
+    "totalCount": {
+      "type": "integer"
+    },
+    "_embedded": {
+      "type": "object",
+      "properties": {
+        "articles": {
+          "type": "array",
+          "items": {}
+        }
+      },
+      "required": [
+        "articles"
+      ]
+    }
+  },
+  "required": [
+    "_links",
+    "totalCount",
+    "_embedded"
+  ]
+}

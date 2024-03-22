@@ -1,0 +1,2329 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "Asset Trafficker it is a custom-built component leveraging Marvin generic client responsible for:\n1. Downloading assets and its metadata from Marvin (for the articles specified in state)\n2. Upload assets into storage of asset delivery engine according to configured formats, priorities, filters and naming convension.\n3. Subscribe to events published by Marvin due to asset updates (incl. metadata)\n4. Ensure in maintaining the status of assets with in storage of asset delivery engine.\n\nREST API allows:\n1. View and modify range of articles tracked by Asset Trafficker and its state (private/public).\n2. Monitor delivery status and delivered files URI's. ",
+    "version": "2.0.0",
+    "title": "[CPM] Asset Trafficker",
+    "contact": {
+      "email": "dad.team@groups.adidas.com"
+    }
+  },
+  "host": "at-dad-test.emea.adsint.biz",
+  "schemes": [
+    "https"
+  ],
+  "produces": [
+    "application/hal+json",
+    "application/problem+json"
+  ],
+  "security": [
+    {
+      "OAuth2": []
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Retrieve API Root",
+        "description": "The API Root contains the initial set of link relations.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The root of the API",
+            "schema": {
+              "$ref": "#/definitions/hal_root"
+            }
+          },
+          "401": {
+            "description": "API key is invalid",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              },
+              "WWW_Authenticate": {
+                "type": "string",
+                "default": "Adidas-API-Key"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/api_key_error"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/internal_error"
+            }
+          }
+        }
+      },
+      "x-summary": "API Root"
+    },
+    "/{range_id}/articles": {
+      "get": {
+        "summary": "Retrieve List of Articles Stored in State",
+        "parameters": [
+          {
+            "name": "range_id",
+            "in": "path",
+            "description": "Id of the range of the articles",
+            "required": true,
+            "type": "integer",
+            "x-example": 95
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "description": "Comma-separated list of fields to include in the response",
+            "required": false,
+            "type": "string",
+            "default": "articleNumber,dirty,public,highPriority,launchUtc,expiryUtc",
+            "x-example": "articleNumber,dirty,public,highPriority,launchUtc,expiryUtc,_links,_embedded"
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "description": "paging parameter. Max count of items on the page",
+            "required": false,
+            "type": "integer",
+            "default": 100,
+            "maximum": 1000,
+            "minimum": 0,
+            "x-example": 100
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "description": "paging parameter. Count of skipped items.",
+            "required": false,
+            "type": "integer",
+            "default": 0,
+            "minimum": 0,
+            "x-example": 300
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "filter parameter with OData syntax. Max allowed number of logical operators is 500.",
+            "required": false,
+            "type": "string",
+            "x-example": "articleNumber eq 'AB1234' or articleNumber eq 'AB1235'"
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "sorting parameter. Comma separated list of fields",
+            "required": false,
+            "type": "string",
+            "x-example": "articleNumber asc"
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "description": "name or id of the delivery scope",
+            "required": false,
+            "type": "string",
+            "x-example": "pim-us"
+          },
+          {
+            "name": "pfd",
+            "in": "query",
+            "description": "Post filter for deliveries collection. OData format",
+            "required": false,
+            "type": "string",
+            "x-example": "tags/any(t: t eq 'pdp')"
+          },
+          {
+            "name": "pfm",
+            "in": "query",
+            "description": "Post filter for asset metadata collection. OData format",
+            "required": false,
+            "type": "string",
+            "x-example": "productView eq 'Front View'"
+          },
+          {
+            "name": "mdm",
+            "in": "query",
+            "description": "Match deliveries and metadata. If \"true\" - masted data collection and deliveries collection are matched by asset IDs",
+            "required": false,
+            "type": "boolean",
+            "default": false,
+            "x-example": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The list of articles",
+            "schema": {
+              "$ref": "#/definitions/hal_article_collection"
+            }
+          },
+          "400": {
+            "description": "The request could not be understood by the server due to malformed syntax",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/bad_request"
+            }
+          },
+          "401": {
+            "description": "API key is invalid",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              },
+              "WWW_Authenticate": {
+                "type": "string",
+                "default": "Adidas-API-Key"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/api_key_error"
+            }
+          },
+          "403": {
+            "description": "Forbidden to perform action",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/forbidden_error"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/internal_error"
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Retrieve List of Articles Stored in State With Large Inputs",
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "parameters": [
+          {
+            "name": "range_id",
+            "in": "path",
+            "description": "Id of the range of the articles",
+            "required": true,
+            "type": "integer",
+            "x-example": 95
+          },
+          {
+            "name": "fields",
+            "in": "formData",
+            "description": "Comma-separated list of fields to include in the response",
+            "required": false,
+            "type": "string",
+            "default": "articleNumber,dirty,public,highPriority,launchUtc,expiryUtc",
+            "x-example": "articleNumber,dirty,public,highPriority,launchUtc,expiryUtc,_links,_embedded"
+          },
+          {
+            "name": "$top",
+            "in": "formData",
+            "description": "paging parameter. Max count of items on the page",
+            "required": false,
+            "type": "integer",
+            "default": 100,
+            "maximum": 1000,
+            "minimum": 0,
+            "x-example": 100
+          },
+          {
+            "name": "$skip",
+            "in": "formData",
+            "description": "paging parameter. Count of skipped items.",
+            "required": false,
+            "type": "integer",
+            "default": 0,
+            "minimum": 0,
+            "x-example": 300
+          },
+          {
+            "name": "$filter",
+            "in": "formData",
+            "description": "filter parameter with OData syntax. Max allowed number of logical operators is 500.",
+            "required": false,
+            "type": "string",
+            "x-example": "articleNumber eq 'AB1234' or articleNumber eq 'AB1235'"
+          },
+          {
+            "name": "$orderby",
+            "in": "formData",
+            "description": "sorting parameter. Comma separated list of fields",
+            "required": false,
+            "type": "string",
+            "x-example": "articleNumber asc"
+          },
+          {
+            "name": "scope",
+            "in": "formData",
+            "description": "name or id of the delivery scope",
+            "required": false,
+            "type": "string",
+            "x-example": "pim-us"
+          },
+          {
+            "name": "pfd",
+            "in": "formData",
+            "description": "Post filter for deliveries collection. OData format",
+            "required": false,
+            "type": "string",
+            "x-example": "tags/any(t: t eq 'pdp')"
+          },
+          {
+            "name": "pfm",
+            "in": "formData",
+            "description": "Post filter for asset metadata collection. OData format",
+            "required": false,
+            "type": "string",
+            "x-example": "productView eq 'Front View'"
+          },
+          {
+            "name": "mdm",
+            "in": "formData",
+            "description": "Match deliveries and metadata. If \"true\" - masted data collection and deliveries collection are matched by asset IDs",
+            "required": false,
+            "type": "boolean",
+            "default": false,
+            "x-example": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The list of articles",
+            "schema": {
+              "$ref": "#/definitions/hal_article_collection"
+            }
+          },
+          "400": {
+            "description": "The request could not be understood by the server due to malformed syntax",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/bad_request"
+            }
+          },
+          "401": {
+            "description": "API key is invalid",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              },
+              "WWW_Authenticate": {
+                "type": "string",
+                "default": "Adidas-API-Key"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/api_key_error"
+            }
+          },
+          "403": {
+            "description": "Forbidden to perform action",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/forbidden_error"
+            }
+          },
+          "415": {
+            "description": "The Content-Type header in the request is invalid.",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/unsupported_media_type"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/internal_error"
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Create or Update Articles Based on Article Number As a Primary Key Batch Operation",
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "range_id",
+            "in": "path",
+            "description": "Id of the range of the articles",
+            "required": true,
+            "type": "integer",
+            "x-example": 95
+          },
+          {
+            "in": "body",
+            "name": "article",
+            "description": "articles to be created or updated. Not recommended to send more than 1000 article numbers in one request.",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/article_edit_collection"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Newly created or updated articles",
+            "schema": {
+              "$ref": "#/definitions/hal_article_collection"
+            }
+          },
+          "400": {
+            "description": "The request could not be understood by the server due to malformed syntax",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/bad_request"
+            }
+          },
+          "401": {
+            "description": "API key is invalid",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              },
+              "WWW_Authenticate": {
+                "type": "string",
+                "default": "Adidas-API-Key"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/api_key_error"
+            }
+          },
+          "403": {
+            "description": "Forbidden to perform action",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/forbidden_error"
+            }
+          },
+          "415": {
+            "description": "The Content-Type header in the request is invalid.",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/unsupported_media_type"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/internal_error"
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Articles Based on Article Number As a Primary Key Batch Operation",
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "range_id",
+            "in": "path",
+            "description": "Id of the range of the articles",
+            "required": true,
+            "type": "integer",
+            "x-example": 95
+          },
+          {
+            "in": "body",
+            "name": "article",
+            "description": "articles to be deleted",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/article_pk_collection"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted articles",
+            "schema": {
+              "$ref": "#/definitions/hal_article_collection"
+            }
+          },
+          "400": {
+            "description": "The request could not be understood by the server due to malformed syntax",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/bad_request"
+            }
+          },
+          "401": {
+            "description": "API key is invalid",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              },
+              "WWW_Authenticate": {
+                "type": "string",
+                "default": "Adidas-API-Key"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/api_key_error"
+            }
+          },
+          "403": {
+            "description": "Forbidden to perform action",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/forbidden_error"
+            }
+          },
+          "415": {
+            "description": "The Content-Type header in the request is invalid.",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/unsupported_media_type"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/internal_error"
+            }
+          }
+        }
+      },
+      "x-summary": "List of Articles For Particular Client"
+    },
+    "/{range_id}/articles/{articleNumber}": {
+      "get": {
+        "summary": "Retrieve Article",
+        "parameters": [
+          {
+            "name": "range_id",
+            "in": "path",
+            "description": "Id of the range of the articles",
+            "required": true,
+            "type": "integer",
+            "x-example": 95
+          },
+          {
+            "name": "articleNumber",
+            "in": "path",
+            "description": "Id of the article",
+            "required": true,
+            "type": "string",
+            "x-example": "AQ5960"
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "description": "Comma-separated list of fields to include in the response",
+            "required": false,
+            "type": "string",
+            "default": "articleNumber,dirty,public,highPriority,launchUtc,expiryUtc,_links,_embedded",
+            "x-example": "articleNumber,dirty,public,highPriority,launchUtc,expiryUtc,_links,_embedded"
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "description": "name or id of the delivery scope",
+            "required": false,
+            "type": "string",
+            "x-example": "pim-us"
+          },
+          {
+            "name": "pfd",
+            "in": "query",
+            "description": "Post filter for deliveries collection. OData format",
+            "required": false,
+            "type": "string",
+            "x-example": "tags/any(t: t eq 'pdp')"
+          },
+          {
+            "name": "pfm",
+            "in": "query",
+            "description": "Post filter for asset metadata collection. OData format",
+            "required": false,
+            "type": "string",
+            "x-example": "productView eq 'Front View'"
+          },
+          {
+            "name": "mdm",
+            "in": "query",
+            "description": "Match deliveries and metadata. If \"true\" - masted data collection and deliveries collection are matched by asset IDs",
+            "required": false,
+            "type": "boolean",
+            "default": false,
+            "x-example": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A particular article",
+            "schema": {
+              "$ref": "#/definitions/hal_article"
+            }
+          },
+          "400": {
+            "description": "The request could not be understood by the server due to malformed syntax",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/bad_request"
+            }
+          },
+          "401": {
+            "description": "API key is invalid",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              },
+              "WWW_Authenticate": {
+                "type": "string",
+                "default": "Adidas-API-Key"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/api_key_error"
+            }
+          },
+          "403": {
+            "description": "Forbidden to perform action",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/forbidden_error"
+            }
+          },
+          "404": {
+            "description": "The requested article wasn't found",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/article_not_found"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/internal_error"
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Article",
+        "parameters": [
+          {
+            "name": "range_id",
+            "in": "path",
+            "description": "Id of the range of the articles",
+            "required": true,
+            "type": "integer",
+            "x-example": 95
+          },
+          {
+            "name": "articleNumber",
+            "in": "path",
+            "description": "Id of the article",
+            "required": true,
+            "type": "string",
+            "x-example": "AQ5960"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The article was deleted",
+            "schema": {
+              "$ref": "#/definitions/empty"
+            }
+          },
+          "401": {
+            "description": "API key is invalid",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              },
+              "WWW_Authenticate": {
+                "type": "string",
+                "default": "Adidas-API-Key"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/api_key_error"
+            }
+          },
+          "403": {
+            "description": "Forbidden to perform action",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/forbidden_error"
+            }
+          },
+          "404": {
+            "description": "The requested article wasn't found",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/article_not_found"
+            }
+          },
+          "415": {
+            "description": "The Content-Type header in the request is invalid.",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/unsupported_media_type"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/internal_error"
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update Article",
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "range_id",
+            "in": "path",
+            "description": "Id of the range of the articles",
+            "required": true,
+            "type": "integer",
+            "x-example": 95
+          },
+          {
+            "name": "articleNumber",
+            "in": "path",
+            "description": "Id of the article",
+            "required": true,
+            "type": "string",
+            "x-example": "AQ5960"
+          },
+          {
+            "in": "body",
+            "name": "article",
+            "description": "Partial article update",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/article_edit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The article was updated",
+            "schema": {
+              "$ref": "#/definitions/hal_article"
+            }
+          },
+          "400": {
+            "description": "The request could not be understood by the server due to malformed syntax",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/bad_request"
+            }
+          },
+          "401": {
+            "description": "API key is invalid",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              },
+              "WWW_Authenticate": {
+                "type": "string",
+                "default": "Adidas-API-Key"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/api_key_error"
+            }
+          },
+          "403": {
+            "description": "Forbidden to perform action",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/forbidden_error"
+            }
+          },
+          "404": {
+            "description": "The requested article wasn't found",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/article_not_found"
+            }
+          },
+          "415": {
+            "description": "The Content-Type header in the request is invalid.",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/unsupported_media_type"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/internal_error"
+            }
+          }
+        }
+      },
+      "x-summary": "Article By Number"
+    },
+    "/{range_id}/articles/{articleNumber}/manualMode": {
+      "get": {
+        "summary": "Current Sorting and Tagging Status for Article",
+        "parameters": [
+          {
+            "name": "range_id",
+            "in": "path",
+            "description": "Id of the range of the articles",
+            "required": true,
+            "type": "integer",
+            "x-example": 95
+          },
+          {
+            "name": "articleNumber",
+            "in": "path",
+            "description": "Id of the article",
+            "required": true,
+            "type": "string",
+            "x-example": "AQ5960"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current sorting and tagging status for article",
+            "schema": {
+              "$ref": "#/definitions/article_mm"
+            }
+          },
+          "401": {
+            "description": "API key is invalid",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              },
+              "WWW_Authenticate": {
+                "type": "string",
+                "default": "Adidas-API-Key"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/api_key_error"
+            }
+          },
+          "403": {
+            "description": "Forbidden to perform action",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/forbidden_error"
+            }
+          },
+          "404": {
+            "description": "The requested article wasn't found",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/article_not_found"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/internal_error"
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Enable Custom Sorting and Tagging Status for Article",
+        "parameters": [
+          {
+            "name": "range_id",
+            "in": "path",
+            "description": "Id of the range of the articles",
+            "required": true,
+            "type": "integer",
+            "x-example": 95
+          },
+          {
+            "name": "articleNumber",
+            "in": "path",
+            "description": "Id of the article",
+            "required": true,
+            "type": "string",
+            "x-example": "AQ5960"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current sorting and tagging status for article",
+            "schema": {
+              "$ref": "#/definitions/article_mm"
+            }
+          },
+          "400": {
+            "description": "The request could not be understood by the server due to malformed syntax",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/bad_request"
+            }
+          },
+          "401": {
+            "description": "API key is invalid",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              },
+              "WWW_Authenticate": {
+                "type": "string",
+                "default": "Adidas-API-Key"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/api_key_error"
+            }
+          },
+          "403": {
+            "description": "Forbidden to perform action",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/forbidden_error"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/internal_error"
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update Custom Sorting and Tagging for Article",
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "range_id",
+            "in": "path",
+            "description": "Id of the range of the articles",
+            "required": true,
+            "type": "integer",
+            "x-example": 95
+          },
+          {
+            "name": "articleNumber",
+            "in": "path",
+            "description": "Id of the article",
+            "required": true,
+            "type": "string",
+            "x-example": "AQ5960"
+          },
+          {
+            "in": "body",
+            "name": "article",
+            "description": "Custom sorting and tagging",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/article_mm"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The sorting and tagging config was updated",
+            "schema": {
+              "$ref": "#/definitions/article_mm"
+            }
+          },
+          "400": {
+            "description": "The request could not be understood by the server due to malformed syntax",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/bad_request"
+            }
+          },
+          "401": {
+            "description": "API key is invalid",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              },
+              "WWW_Authenticate": {
+                "type": "string",
+                "default": "Adidas-API-Key"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/api_key_error"
+            }
+          },
+          "403": {
+            "description": "Forbidden to perform action",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/forbidden_error"
+            }
+          },
+          "404": {
+            "description": "The requested article wasn't found",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/article_not_found"
+            }
+          },
+          "412": {
+            "description": "Precondition Failed",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/precondition_failed"
+            }
+          },
+          "415": {
+            "description": "The Content-Type header in the request is invalid.",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/unsupported_media_type"
+            }
+          },
+          "428": {
+            "description": "Precondition Required",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/precondition_required"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/internal_error"
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Disable Custom Sorting and Tagging Status for Article",
+        "parameters": [
+          {
+            "name": "range_id",
+            "in": "path",
+            "description": "Id of the range of the articles",
+            "required": true,
+            "type": "integer",
+            "x-example": 95
+          },
+          {
+            "name": "articleNumber",
+            "in": "path",
+            "description": "Id of the article",
+            "required": true,
+            "type": "string",
+            "x-example": "AQ5960"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cistom Sorting and tagging disabled",
+            "schema": {
+              "$ref": "#/definitions/empty"
+            }
+          },
+          "401": {
+            "description": "API key is invalid",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              },
+              "WWW_Authenticate": {
+                "type": "string",
+                "default": "Adidas-API-Key"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/api_key_error"
+            }
+          },
+          "403": {
+            "description": "Forbidden to perform action",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/forbidden_error"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/internal_error"
+            }
+          }
+        }
+      },
+      "x-summary": "Manual Sorting And Tagging for Article"
+    },
+    "/{range_id}/tokens/accessprivate": {
+      "post": {
+        "summary": "Create New Token",
+        "parameters": [
+          {
+            "name": "range_id",
+            "in": "path",
+            "description": "Id of the range of the articles",
+            "required": true,
+            "type": "integer",
+            "x-example": 95
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The Token",
+            "schema": {
+              "$ref": "#/definitions/private_access_token"
+            }
+          },
+          "401": {
+            "description": "API key is invalid",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              },
+              "WWW_Authenticate": {
+                "type": "string",
+                "default": "Adidas-API-Key"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/api_key_error"
+            }
+          },
+          "403": {
+            "description": "Forbidden to perform action",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/forbidden_error"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "headers": {
+              "Content-Type": {
+                "type": "string",
+                "default": "application/problem+json"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/internal_error"
+            }
+          }
+        }
+      },
+      "x-summary": "Security Token To Access Private Images and Videos"
+    }
+  },
+  "securityDefinitions": {
+    "OAuth2": {
+      "type": "oauth2",
+      "tokenUrl": "https://login.microsoftonline.com/3bfeb222-e42c-4535-aace-ea6f7751369b/oauth2/v2.0/token",
+      "flow": "password",
+      "scopes": {
+        "8ba80e79-af41-40af-9fa0-4762c763e502/all": "Grants All access according to user roles"
+      }
+    }
+  },
+  "definitions": {
+    "empty": {
+      "type": "object"
+    },
+    "hal_root": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/hal_resource"
+        },
+        {}
+      ],
+      "example": {
+        "_links": {
+          "self": {
+            "href": "/"
+          },
+          "articles": {
+            "href": "/34/articles"
+          }
+        }
+      }
+    },
+    "private_access_token": {
+      "type": "object",
+      "properties": {
+        "location": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "startUtc": {
+          "type": "string"
+        },
+        "endUtc": {
+          "type": "string"
+        }
+      },
+      "example": {
+        "location": "cookie",
+        "name": "__cld_token__",
+        "value": "st=1499685376~exp=1499771776~acl=/*~id=dlqpwl5sl~hmac=fbe45f9e55088bad9d0f12188e5b7dec7fde1d7c79b6c56ea3f6801e93a1821a",
+        "startUtc": "2017-02-13T21:17:46",
+        "endUtc": "2018-02-13T21:17:46"
+      }
+    },
+    "hal_article_collection": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/hal_resource"
+        },
+        {
+          "properties": {
+            "totalCount": {
+              "type": "integer"
+            }
+          }
+        }
+      ],
+      "example": {
+        "_links": {
+          "self": {
+            "href": "/34/articles"
+          }
+        },
+        "totalCount": 323045,
+        "_embedded": {
+          "articles": {
+            "$ref": "#/definitions/hal_article/example"
+          }
+        }
+      }
+    },
+    "hal_article": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/hal_resource"
+        },
+        {
+          "$ref": "#/definitions/article"
+        }
+      ],
+      "example": {
+        "_links": {
+          "self": {
+            "href": "/34/articles/AB1234"
+          }
+        },
+        "articleNumber": "AB1234",
+        "dirty": false,
+        "public": false,
+        "highPriority": false,
+        "launchUtc": "2025-02-13T21:17:46",
+        "expiryUtc": "2035-02-13T21:17:46",
+        "_embedded": {
+          "deliveries": {
+            "$ref": "#/definitions/delivery/example"
+          },
+          "metadata": {
+            "$ref": "#/definitions/metadata/example"
+          }
+        }
+      }
+    },
+    "article_primary_key": {
+      "type": "object",
+      "required": [
+        "articleNumber"
+      ],
+      "properties": {
+        "articleNumber": {
+          "type": "string"
+        }
+      },
+      "example": {
+        "articleNumber": "AB1234"
+      }
+    },
+    "article_edit": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/article_primary_key"
+        },
+        {
+          "properties": {
+            "public": {
+              "type": "boolean",
+              "default": true
+            },
+            "highPriority": {
+              "type": "boolean"
+            },
+            "launchUtc": {
+              "type": "string"
+            },
+            "expiryUtc": {
+              "type": "string"
+            }
+          }
+        }
+      ],
+      "example": {
+        "articleNumber": "AB1234",
+        "public": true,
+        "highPriority": true,
+        "launchUtc": "2016-02-13T21:17:46",
+        "expiryUtc": "2025-02-13T21:17:46"
+      }
+    },
+    "article_mm": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/article_primary_key"
+        },
+        {
+          "properties": {
+            "manualMode": {
+              "type": "boolean",
+              "default": false
+            },
+            "manualModeUser": {
+              "type": "string"
+            },
+            "manualModeState": {
+              "type": "string",
+              "enum": [
+                "Applied",
+                "Outdated",
+                "Fallback",
+                "null"
+              ]
+            },
+            "dirty": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        }
+      ],
+      "example": {
+        "articleNumber": "AB1234",
+        "manualMode": true,
+        "dirty": false,
+        "manualModeUser": "ihar.yakimush@externals.adidas.com",
+        "manualModeState": "Outdated"
+      }
+    },
+    "article": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/article_edit"
+        },
+        {
+          "properties": {
+            "dirty": {
+              "type": "boolean"
+            }
+          }
+        }
+      ],
+      "example": {
+        "articleNumber": "AB1234",
+        "dirty": false,
+        "public": false,
+        "highPriority": false,
+        "launchUtc": "2025-02-13T21:17:46",
+        "expiryUtc": "2035-02-13T21:17:46"
+      }
+    },
+    "article_edit_collection": {
+      "type": "object",
+      "properties": {
+        "articles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/article_edit"
+          }
+        }
+      },
+      "example": {
+        "articles": {
+          "$ref": "#/definitions/article_edit/example"
+        }
+      }
+    },
+    "article_pk_collection": {
+      "type": "object",
+      "properties": {
+        "articles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/article_primary_key"
+          }
+        }
+      },
+      "example": {
+        "articles": {
+          "$ref": "#/definitions/article_primary_key/example"
+        }
+      }
+    },
+    "delivery": {
+      "type": "object",
+      "properties": {
+        "successfull": {
+          "type": "boolean"
+        },
+        "public": {
+          "type": "boolean"
+        },
+        "available": {
+          "type": "boolean"
+        },
+        "width": {
+          "type": "integer"
+        },
+        "height": {
+          "type": "integer"
+        },
+        "resourceType": {
+          "type": "string",
+          "enum": [
+            "image",
+            "video"
+          ]
+        },
+        "src": {
+          "type": "string"
+        },
+        "srcTemplate": {
+          "type": "string"
+        },
+        "outputSetId": {
+          "type": "integer"
+        },
+        "taskId": {
+          "type": "integer"
+        },
+        "marvinAssetId": {
+          "type": "string"
+        },
+        "marvinEtag": {
+          "type": "string"
+        },
+        "publicId": {
+          "type": "string"
+        },
+        "defaultAlias": {
+          "type": "string"
+        },
+        "sourceExtension": {
+          "type": "string"
+        }
+      },
+      "example": {
+        "successfull": true,
+        "public": true,
+        "available": true,
+        "width": 1080,
+        "height": 1080,
+        "resourceType": "video",
+        "src": "http://res.cloudinary.com/assetmanagerpimdev/videos/074311dd7ffd440b80b6a79200d0dac9_d98c/BS4877_N_video_Model_eCom.mp4",
+        "srcTemplate": "http://res.cloudinary.com/assetmanagerpimdev/videos/{conversion}/074311dd7ffd440b80b6a79200d0dac9_d98c/BS4877_N_video_Model_eCom.mp4",
+        "outputSetId": 12,
+        "taskId": 1,
+        "marvinAssetId": "dc505d21dd844717b00ea30a00be1581",
+        "marvinEtag": "207286b17ddc4a05880da30d001d876218b14986032b48eba4a79a6ca520ce0a",
+        "publicId": "074311dd7ffd440b80b6a79200d0dac9_d98c",
+        "defaultAlias": "BS4877_N_video_Model_eCom",
+        "sourceExtension": "mp4"
+      }
+    },
+    "delivery_mm": {
+      "type": "object",
+      "properties": {
+        "successfull": {
+          "type": "boolean"
+        },
+        "public": {
+          "type": "boolean"
+        },
+        "available": {
+          "type": "boolean"
+        },
+        "srcTemplate": {
+          "type": "string"
+        },
+        "outputSetId": {
+          "type": "integer"
+        },
+        "deliveryTaskId": {
+          "type": "integer"
+        },
+        "sortOrder": {
+          "type": "integer"
+        },
+        "scopeId": {
+          "type": "integer"
+        },
+        "marvinAssetId": {
+          "type": "string"
+        },
+        "publicId": {
+          "type": "string"
+        },
+        "defaultAlias": {
+          "type": "string"
+        },
+        "sourceExtension": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "example": {
+        "successfull": true,
+        "public": true,
+        "available": true,
+        "width": 1080,
+        "height": 1080,
+        "resourceType": "video",
+        "src": "http://res.cloudinary.com/assetmanagerpimdev/videos/074311dd7ffd440b80b6a79200d0dac9_d98c/BS4877_N_video_Model_eCom.mp4",
+        "srcTemplate": "http://res.cloudinary.com/assetmanagerpimdev/videos/{conversion}/074311dd7ffd440b80b6a79200d0dac9_d98c/BS4877_N_video_Model_eCom.mp4",
+        "outputSetId": 12,
+        "taskId": 1,
+        "marvinAssetId": "dc505d21dd844717b00ea30a00be1581",
+        "marvinEtag": "207286b17ddc4a05880da30d001d876218b14986032b48eba4a79a6ca520ce0a",
+        "publicId": "074311dd7ffd440b80b6a79200d0dac9_d98c",
+        "defaultAlias": "BS4877_N_video_Model_eCom",
+        "sourceExtension": "mp4"
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "imageStyle": {
+          "type": "string"
+        },
+        "productView": {
+          "type": "string"
+        },
+        "usage": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "type": "string"
+        },
+        "latestFileUpdated": {
+          "type": "string"
+        },
+        "confidential": {
+          "type": "boolean"
+        },
+        "imageLaunchDate": {
+          "type": "string"
+        },
+        "imageExpiryDate": {
+          "type": "string"
+        },
+        "vendor": {
+          "type": "string"
+        },
+        "modelWaist": {
+          "type": "string"
+        },
+        "modelChest": {
+          "type": "string"
+        },
+        "modelHeight": {
+          "type": "string"
+        },
+        "productSizeIndex": {
+          "type": "string"
+        },
+        "productSize": {
+          "type": "string"
+        },
+        "pairedArticles": {
+          "type": "string"
+        },
+        "assetCategory": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "assetName": {
+          "type": "string"
+        }
+      },
+      "example": {
+        "imageStyle": "On Model",
+        "productView": "Front View",
+        "usage": [
+          "eCommerce"
+        ],
+        "status": "Final",
+        "latestFileUpdated": "2017-06-14T18:41:33",
+        "confidential": false,
+        "imageLaunchDate": "2015-10-28T00:00:00",
+        "imageExpiryDate": "2019-06-11T00:00:00",
+        "vendor": "Nureg",
+        "modelWaist": "78",
+        "modelChest": "107",
+        "modelHeight": "186",
+        "productSizeIndex": "50",
+        "pairedArticles": "BQ4840$BY2551$CE9551",
+        "assetCategory": "Photography",
+        "id": "f9f6970d-82da-4b9b-afb0-a7d200d7f0ef",
+        "assetName": "AB1234_F_Model_eCom.tif"
+      }
+    },
+    "article_not_found": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/problem_detail"
+        },
+        {}
+      ],
+      "example": {
+        "title": "Not Found",
+        "detail": "Cannot find the requested article",
+        "status": 404,
+        "instance": "/34/articles/BA1234"
+      }
+    },
+    "bad_request": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/problem_detail"
+        },
+        {}
+      ],
+      "example": {
+        "title": "Bad Request",
+        "status": 400,
+        "detail": "Incorrect syntax of {param name} parameter"
+      }
+    },
+    "precondition_required": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/problem_detail"
+        },
+        {}
+      ],
+      "example": {
+        "title": "Precondition Required",
+        "status": 428,
+        "detail": "IfUnmodifiedSince header required"
+      }
+    },
+    "precondition_failed": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/problem_detail"
+        },
+        {}
+      ],
+      "example": {
+        "title": "Precondition Failed",
+        "status": 412,
+        "detail": "IfUnmodifiedSince value {ifUnmodifiedSince.Value:s} not equal to article ModifiedOnUtc {article.ModifiedOnUtc:s}"
+      }
+    },
+    "unsupported_media_type": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/problem_detail"
+        },
+        {}
+      ],
+      "example": {
+        "title": "Unsupported Media Type",
+        "status": 415,
+        "detail": "Request content type application/xml is not supported by the server. Supported content types are: application/json."
+      }
+    },
+    "internal_error": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/problem_detail"
+        },
+        {}
+      ],
+      "example": {
+        "title": "Internal Server Error",
+        "status": 500,
+        "detail": "The server encountered an unexpected condition which prevented it from fulfilling the request"
+      }
+    },
+    "api_key_error": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/problem_detail"
+        },
+        {}
+      ],
+      "example": {
+        "title": "Unauthorized",
+        "detail": "API key is invalid",
+        "status": 401
+      }
+    },
+    "forbidden_error": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/problem_detail"
+        },
+        {}
+      ],
+      "example": {
+        "title": "Forbidden",
+        "detail": "You do not have sufficient permissions to perform the operation",
+        "status": 403
+      }
+    },
+    "problem_detail": {
+      "type": "object",
+      "required": [
+        "detail",
+        "title"
+      ],
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "status": {
+          "type": "number"
+        },
+        "detail": {
+          "type": "string"
+        },
+        "instance": {
+          "type": "string"
+        }
+      }
+    },
+    "hal_link_object": {
+      "type": "object",
+      "required": [
+        "href"
+      ],
+      "properties": {
+        "href": {
+          "type": "string"
+        },
+        "templated": {
+          "type": "boolean"
+        },
+        "type": {
+          "type": "string"
+        },
+        "deprecation": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "profile": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "hreflang": {
+          "type": "string"
+        }
+      }
+    },
+    "hal_curies_link": {
+      "title": "HAL Curies Link",
+      "allOf": [
+        {
+          "type": "object",
+          "required": [
+            "templated"
+          ],
+          "properties": {
+            "templated": {}
+          }
+        },
+        {
+          "$ref": "#/definitions/hal_link_object"
+        }
+      ]
+    },
+    "hal_resource": {
+      "type": "object",
+      "properties": {
+        "_links": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/definitions/hal_link_object"
+              }
+            ]
+          }
+        },
+        "_embedded": {
+          "type": "object",
+          "properties": {}
+        }
+      },
+      "title": "HAL Resource Object"
+    }
+  },
+  "parameters": {
+    "range_id": {
+      "name": "range_id",
+      "in": "path",
+      "description": "Id of the range of the articles",
+      "required": true,
+      "type": "integer",
+      "x-example": 95
+    },
+    "articleNumber": {
+      "name": "articleNumber",
+      "in": "path",
+      "description": "Id of the article",
+      "required": true,
+      "type": "string",
+      "x-example": "AQ5960"
+    },
+    "fields_article": {
+      "name": "fields",
+      "in": "query",
+      "description": "Comma-separated list of fields to include in the response",
+      "required": false,
+      "type": "string",
+      "default": "articleNumber,dirty,public,highPriority,launchUtc,expiryUtc",
+      "x-example": "articleNumber,dirty,public,highPriority,launchUtc,expiryUtc,_links,_embedded"
+    },
+    "fields_article_single": {
+      "name": "fields",
+      "in": "query",
+      "description": "Comma-separated list of fields to include in the response",
+      "required": false,
+      "type": "string",
+      "default": "articleNumber,dirty,public,highPriority,launchUtc,expiryUtc,_links,_embedded",
+      "x-example": "articleNumber,dirty,public,highPriority,launchUtc,expiryUtc,_links,_embedded"
+    },
+    "fields_article_form": {
+      "name": "fields",
+      "in": "formData",
+      "description": "Comma-separated list of fields to include in the response",
+      "required": false,
+      "type": "string",
+      "default": "articleNumber,dirty,public,highPriority,launchUtc,expiryUtc",
+      "x-example": "articleNumber,dirty,public,highPriority,launchUtc,expiryUtc,_links,_embedded"
+    },
+    "odata_take": {
+      "name": "$top",
+      "in": "query",
+      "description": "paging parameter. Max count of items on the page",
+      "required": false,
+      "type": "integer",
+      "default": 100,
+      "maximum": 1000,
+      "minimum": 0,
+      "x-example": 100
+    },
+    "odata_take_form": {
+      "name": "$top",
+      "in": "formData",
+      "description": "paging parameter. Max count of items on the page",
+      "required": false,
+      "type": "integer",
+      "default": 100,
+      "maximum": 1000,
+      "minimum": 0,
+      "x-example": 100
+    },
+    "odata_skip": {
+      "name": "$skip",
+      "in": "query",
+      "description": "paging parameter. Count of skipped items.",
+      "required": false,
+      "type": "integer",
+      "default": 0,
+      "minimum": 0,
+      "x-example": 300
+    },
+    "odata_skip_form": {
+      "name": "$skip",
+      "in": "formData",
+      "description": "paging parameter. Count of skipped items.",
+      "required": false,
+      "type": "integer",
+      "default": 0,
+      "minimum": 0,
+      "x-example": 300
+    },
+    "odata_filter": {
+      "name": "$filter",
+      "in": "query",
+      "description": "filter parameter with OData syntax. Max allowed number of logical operators is 500.",
+      "required": false,
+      "type": "string",
+      "x-example": "articleNumber eq 'AB1234' or articleNumber eq 'AB1235'"
+    },
+    "odata_filter_form": {
+      "name": "$filter",
+      "in": "formData",
+      "description": "filter parameter with OData syntax. Max allowed number of logical operators is 500.",
+      "required": false,
+      "type": "string",
+      "x-example": "articleNumber eq 'AB1234' or articleNumber eq 'AB1235'"
+    },
+    "odata_orderby": {
+      "name": "$orderby",
+      "in": "query",
+      "description": "sorting parameter. Comma separated list of fields",
+      "required": false,
+      "type": "string",
+      "x-example": "articleNumber asc"
+    },
+    "odata_orderby_form": {
+      "name": "$orderby",
+      "in": "formData",
+      "description": "sorting parameter. Comma separated list of fields",
+      "required": false,
+      "type": "string",
+      "x-example": "articleNumber asc"
+    },
+    "scope": {
+      "name": "scope",
+      "in": "query",
+      "description": "name or id of the delivery scope",
+      "required": false,
+      "type": "string",
+      "x-example": "pim-us"
+    },
+    "scope_form_data": {
+      "name": "scope",
+      "in": "formData",
+      "description": "name or id of the delivery scope",
+      "required": false,
+      "type": "string",
+      "x-example": "pim-us"
+    },
+    "mdm": {
+      "name": "mdm",
+      "in": "query",
+      "description": "Match deliveries and metadata. If \"true\" - masted data collection and deliveries collection are matched by asset IDs",
+      "required": false,
+      "type": "boolean",
+      "default": false,
+      "x-example": true
+    },
+    "mdm_form_data": {
+      "name": "mdm",
+      "in": "formData",
+      "description": "Match deliveries and metadata. If \"true\" - masted data collection and deliveries collection are matched by asset IDs",
+      "required": false,
+      "type": "boolean",
+      "default": false,
+      "x-example": true
+    },
+    "pfd": {
+      "name": "pfd",
+      "in": "query",
+      "description": "Post filter for deliveries collection. OData format",
+      "required": false,
+      "type": "string",
+      "x-example": "tags/any(t: t eq 'pdp')"
+    },
+    "pfd_form_data": {
+      "name": "pfd",
+      "in": "formData",
+      "description": "Post filter for deliveries collection. OData format",
+      "required": false,
+      "type": "string",
+      "x-example": "tags/any(t: t eq 'pdp')"
+    },
+    "pfm": {
+      "name": "pfm",
+      "in": "query",
+      "description": "Post filter for asset metadata collection. OData format",
+      "required": false,
+      "type": "string",
+      "x-example": "productView eq 'Front View'"
+    },
+    "pfm_form_data": {
+      "name": "pfm",
+      "in": "formData",
+      "description": "Post filter for asset metadata collection. OData format",
+      "required": false,
+      "type": "string",
+      "x-example": "productView eq 'Front View'"
+    }
+  },
+  "responses": {
+    "400": {
+      "description": "The request could not be understood by the server due to malformed syntax",
+      "headers": {
+        "Content-Type": {
+          "type": "string",
+          "default": "application/problem+json"
+        }
+      },
+      "schema": {
+        "$ref": "#/definitions/bad_request"
+      }
+    },
+    "401": {
+      "description": "API key is invalid",
+      "headers": {
+        "Content-Type": {
+          "type": "string",
+          "default": "application/problem+json"
+        },
+        "WWW_Authenticate": {
+          "type": "string",
+          "default": "Adidas-API-Key"
+        }
+      },
+      "schema": {
+        "$ref": "#/definitions/api_key_error"
+      }
+    },
+    "403": {
+      "description": "Forbidden to perform action",
+      "headers": {
+        "Content-Type": {
+          "type": "string",
+          "default": "application/problem+json"
+        }
+      },
+      "schema": {
+        "$ref": "#/definitions/forbidden_error"
+      }
+    },
+    "412": {
+      "description": "Precondition Failed",
+      "headers": {
+        "Content-Type": {
+          "type": "string",
+          "default": "application/problem+json"
+        }
+      },
+      "schema": {
+        "$ref": "#/definitions/precondition_failed"
+      }
+    },
+    "415": {
+      "description": "The Content-Type header in the request is invalid.",
+      "headers": {
+        "Content-Type": {
+          "type": "string",
+          "default": "application/problem+json"
+        }
+      },
+      "schema": {
+        "$ref": "#/definitions/unsupported_media_type"
+      }
+    },
+    "428": {
+      "description": "Precondition Required",
+      "headers": {
+        "Content-Type": {
+          "type": "string",
+          "default": "application/problem+json"
+        }
+      },
+      "schema": {
+        "$ref": "#/definitions/precondition_required"
+      }
+    },
+    "500": {
+      "description": "Internal Server Error",
+      "headers": {
+        "Content-Type": {
+          "type": "string",
+          "default": "application/problem+json"
+        }
+      },
+      "schema": {
+        "$ref": "#/definitions/internal_error"
+      }
+    },
+    "article_not_found": {
+      "description": "The requested article wasn't found",
+      "headers": {
+        "Content-Type": {
+          "type": "string",
+          "default": "application/problem+json"
+        }
+      },
+      "schema": {
+        "$ref": "#/definitions/article_not_found"
+      }
+    }
+  }
+}

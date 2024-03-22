@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "totalCount": {
+      "type": "integer"
+    },
+    "_embedded": {
+      "type": "object",
+      "properties": {
+        "articles": {
+          "type": "array",
+          "items": [
+            {
+              "type": "object",
+              "properties": {
+                "articleNumber": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "dirty"
+              ]
+            }
+          ]
+        }
+      },
+      "required": [
+        "articles"
+      ]
+    }
+  },
+  "required": [
+    "totalCount",
+    "_embedded"
+  ]
+}
